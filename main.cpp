@@ -37,6 +37,7 @@ static Options create_options(int argc, char** argv)
 	}
 
 	Options options = { "", 0 };
+	
 	for (const auto& arg : args) {
 		if (arg.first == "-f") {
 			options.filename = arg.second;
@@ -70,31 +71,33 @@ static CommandList create_command_list(const std::string& filename)
 	return cmdlist;
 }
 
-static void run_command_list(int thread_count, const CommandList& cmdlist)
+static void run_command_list(int thread_count_i, const CommandList& cmdlist)
 {
 
-	const auto execfn = [&](int start_index, int count) {
-		auto itr = cmdlist.begin() + start_index;
-		for (int i = 0; i < count; ++i) {
+	const auto execfn = [&](const auto start_index, const auto count) {
+		const auto start_itr = cmdlist.begin() + start_index;
+		const auto end_itr = start_itr + count;
+		for (auto itr = start_itr; itr != end_itr; ++itr) {
 			system((*itr).c_str());
-			++itr;
 		}
 	};
 
-	if (thread_count > cmdlist.size()) {
+	const auto list_size = cmdlist.size();
+	auto thread_count = static_cast<decltype(list_size)>(thread_count_i);
+	if (thread_count > list_size) {
 		std::cout << "adjusting thread count"
 			<<" ("<<thread_count<<") "
 			<<"to number of commands"
-			<<" ("<<cmdlist.size()<<") "
+			<<" ("<<list_size<<") "
 			<< std::endl;
-		thread_count = cmdlist.size();
+		thread_count = list_size;
 	}
 
 	std::unique_ptr<std::thread[]> threads = std::make_unique<std::thread[]>(thread_count);
 
-	int division = cmdlist.size() / thread_count;
-	int leftover = cmdlist.size() % thread_count;
-	int i = 0;
+	const auto division = list_size / thread_count;
+	const auto leftover = list_size % thread_count;
+	auto i = decltype(division){0};
 	for (; i < thread_count - 1; ++i) {
 		threads[i] = std::thread(execfn, i * division, division);
 	}
@@ -118,6 +121,8 @@ int main(int argc, char** argv)
 	const Options options = create_options(argc, argv);
 	const CommandList cmdlist = create_command_list(options.filename);
 	run_command_list(options.thread_count, cmdlist);
+
+	return EXIT_SUCCESS;
 }
 
 
