@@ -110,17 +110,21 @@ static void run_command_list(int thread_count_i, const CommandList& cmdlist)
 
 int main(int argc, char** argv)
 {
-	if (argc < 2) {
-		std::cout << "Usage: " 
-			<< argv[0] 
-			<< " -f <command-list-file> -t <number of threads>" 
-			<< std::endl;
-		return EXIT_SUCCESS;
-	}
+	try {
+		if (argc < 2) {
+			std::cout << "Usage: " 
+				<< argv[0] 
+				<< " -f <command list file> -t <number of threads>" 
+				<< std::endl;
+			return EXIT_SUCCESS;
+		}
 
-	const Options options = create_options(argc, argv);
-	const CommandList cmdlist = create_command_list(options.filename);
-	run_command_list(options.thread_count, cmdlist);
+		const Options options = create_options(argc, argv);
+		const CommandList cmdlist = create_command_list(options.filename);
+		run_command_list(options.thread_count, cmdlist);
+	} catch (std::exception& err) {
+		std::cout << "FATAL ERROR: " << err.what() << std::endl;
+	}
 
 	return EXIT_SUCCESS;
 }

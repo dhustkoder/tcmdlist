@@ -1,1 +1,2 @@
-
+find / -name "commands.txt" 2>/dev/null | grep --color=always commands.txt
+find / -name "main.cpp" 2>/dev/null | grep  --color=always main.cpp
